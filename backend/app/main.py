@@ -2,7 +2,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import me, persons
+from app.routers import facts, me, notes, persons, relationships
 
 app = FastAPI(title="Mimre API", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -23,4 +23,7 @@ def health() -> dict[str, str]:
 
 api.include_router(persons.router)
 api.include_router(me.router)
+api.include_router(relationships.router)
+api.include_router(facts.router)
+api.include_router(notes.router)
 app.include_router(api)

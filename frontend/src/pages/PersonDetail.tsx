@@ -5,6 +5,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router";
 import { api } from "../api";
 import { BackLink } from "../components/BackLink";
 import { PersonCard } from "../components/PersonCard";
+import { PersonSections } from "../components/sections/PersonSections";
 import { fullName } from "../lib/format";
 
 export function PersonDetail() {
@@ -67,6 +68,7 @@ export function PersonDetail() {
           <p className="mt-4 text-sm text-red-700 dark:text-red-400">{t("error.generic", { message: remove.error.message })}</p>
         )}
       </PersonCard>
+      <PersonSections person={person} />
     </div>
   );
 }

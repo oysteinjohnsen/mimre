@@ -1,21 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink } from "react-router";
 
 import { api } from "../api";
 import { fullName } from "../lib/format";
+import { useDebounced } from "../lib/hooks";
 import { Avatar } from "./Avatar";
 import { SidebarFooter } from "./SidebarFooter";
-
-function useDebounced<T>(value: T, ms: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return debounced;
-}
 
 export function PersonList() {
   const { t } = useTranslation();
@@ -74,6 +66,7 @@ export function PersonList() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{fullName(p)}</span>
                   {p.nickname && <span className="block truncate text-sm text-stone-500">«{p.nickname}»</span>}
+                  {p.match && <span className="block truncate text-sm text-accent-700 dark:text-accent-500">{p.match}</span>}
                 </span>
               </NavLink>
             </li>

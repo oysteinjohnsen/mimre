@@ -6,7 +6,7 @@ const SIZES = {
   lg: "size-16 text-xl",
 };
 
-export function Avatar({ person, size = "sm" }: { person: Person; size?: keyof typeof SIZES }) {
+export function Avatar({ person, size = "sm" }: { person: Pick<Person, "id" | "first_name" | "last_name">; size?: keyof typeof SIZES }) {
   return (
     <span
       aria-hidden
