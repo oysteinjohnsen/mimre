@@ -1,0 +1,39 @@
+# Local development: `docker compose up -d db` and run api/web natively (see README).
+# Full stack (production-like): `docker compose up -d --build`, then open http://localhost:8338
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mimre}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mimre}
+      POSTGRES_DB: ${POSTGRES_DB:-mimre}
+    volumes:
+      - db-data:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+pg8000://${POSTGRES_USER:-mimre}:${POSTGRES_PASSWORD:-mimre}@db:5432/${POSTGRES_DB:-mimre}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8338}:80"
+    depends_on:
+      - api
+
+volumes:
+  db-data:
