@@ -1,11 +1,26 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 
+import { api, resetSession, type User } from "../api";
 import { BackLink } from "../components/BackLink";
 import { LANGUAGES, type Language, setLanguage } from "../i18n";
 
 export function Settings() {
   const { t, i18n } = useTranslation();
   const current = i18n.resolvedLanguage as Language;
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { data: user } = useQuery<User | null>({ queryKey: ["auth", "user"], queryFn: api.currentUser, staleTime: Infinity });
+
+  const logout = async () => {
+    try {
+      await api.logout();
+    } finally {
+      await navigate("/");
+      resetSession(queryClient, null);
+    }
+  };
 
   return (
     <div className="p-4 md:p-0">
@@ -38,6 +53,14 @@ export function Settings() {
             ))}
           </div>
         </fieldset>
+
+        <section>
+          <h2 className="font-medium">{t("account.title")}</h2>
+          {user && <p className="mb-3 text-sm text-stone-500">{t("account.loggedInAs", { email: user.email })}</p>}
+          <button type="button" className="btn-secondary" onClick={() => void logout()}>
+            {t("account.logout")}
+          </button>
+        </section>
       </div>
     </div>
   );

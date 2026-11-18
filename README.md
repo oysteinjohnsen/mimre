@@ -14,13 +14,14 @@
 | Postgres (dev, localhost only) | 5433 |
 | API dev server | 8010 |
 | Vite dev server | 5173 |
-| Full Docker stack | 8338 (`WEB_PORT`) |
+| Full Docker stack | 8338 (`WEB_PORT`, localhost only) |
+| Mailpit (dev mailbox) | 8025 (web UI), 1025 (SMTP) |
 
 ## Local development
 
 ```sh
 # 1. Database
-docker compose up -d db
+docker compose up -d db mailpit
 
 # 2. API (from backend/)
 uv sync
@@ -53,6 +54,51 @@ uv run python -m alembic revision --autogenerate -m "describe change"
 npm run build
 ```
 
+## Accounts and login
+
+Login is email + password, then a one-time code sent by email. There is no public sign-up:
+accounts are created on the server with the admin CLI (from `backend/`):
+
+```sh
+uv run python -m app.cli create-user you@example.com   # asks for a password (min. 10 characters)
+uv run python -m app.cli set-password you@example.com  # also logs out all devices
+uv run python -m app.cli set-email old@example.com new@example.com
+uv run python -m app.cli list-users
+uv run python -m app.cli delete-user someone@example.com   # deletes the account AND all its data
+```
+
+In the Docker stack: `docker compose exec api python -m app.cli <command>`.
+
+In development, login codes land in **Mailpit** at http://localhost:8025 (nothing leaves the machine).
+In production, set `SMTP_*` and `MAIL_FROM` (see [.env.example](.env.example)).
+
+**First time after upgrading from the single-user version:** existing data was given to the account
+`owner@mimre.local`, which can't log in yet. Make it yours:
+
+```sh
+uv run python -m app.cli set-email owner@mimre.local you@example.com
+uv run python -m app.cli set-password you@example.com
+```
+
+### Data isolation (read this before adding features)
+
+Each user only ever sees their own data. This is enforced in three layers:
+
+1. **API:** every endpoint except logging in requires a session (HttpOnly, Secure, SameSite cookie).
+   Contact-data endpoints use `SessionDep` from [app/deps.py](backend/app/deps.py), which only exists
+   for a logged-in user.
+2. **Row-level security in Postgres:** every data table has an `owner_id` and a policy that only shows
+   and accepts rows of the logged-in user (`app.user_id`, set per transaction in [app/db.py](backend/app/db.py)).
+   The app connects as the restricted role `mimre_app`, which cannot bypass these policies. `owner_id` is
+   filled in by the database, so application code never sets it.
+3. **Foreign keys** include the owner, so a fact, note or relationship can never point at another user's person.
+
+**When adding a table:** give it `owner_id = _owner_id()` (see [app/models.py](backend/app/models.py)),
+reference people with `_owned_person_fk(...)`, and in the migration enable row-level security with an
+`owner_only` policy (copy from the `users, authentication and row-level security` migration).
+[tests/test_security.py](backend/tests/test_security.py) fails if any table lacks row-level security,
+if any endpoint works without login, or if one user can reach another user's data.
+
 ## Install on iPhone (PWA)
 
 Open Mimre in Safari, tap **Share → Add to Home Screen**. It then opens full screen with its own icon.
@@ -76,12 +122,14 @@ cp .env.example .env   # set a real POSTGRES_PASSWORD
 docker compose up -d --build
 ```
 
-Open http://localhost:8338. The API container runs migrations on startup.
+Open http://localhost:8338. The API container runs migrations on startup. Login codes go to Mailpit
+(http://localhost:8025) unless `SMTP_HOST` is set.
 
 ## Roadmap
 
 1. ~~Skeleton: people CRUD, i18n, responsive layout, Docker~~
 2. ~~Relationships (stored once, reverse label derived from gender; siblings/grandparents inferred), flexible facts, dated notes, fuzzy search across names, facts and notes~~
 3. ~~PWA (installable on iPhone)~~
-4. Deploy to Synology NAS behind Cloudflare Tunnel + Cloudflare Access; automated `pg_dump` backups
-5. Map of where people live, birthday reminders, tags
+4. ~~User accounts with email code login, per-user data isolation (row-level security)~~
+5. Deploy to Synology NAS behind Cloudflare Tunnel + Cloudflare Access; automated `pg_dump` backups
+6. Map of where people live, birthday reminders, tags
