@@ -6,7 +6,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { api, type Gender, type Person, type PersonInput } from "../api";
 import { BackLink } from "../components/BackLink";
 import { LOCALES, type Language } from "../i18n";
-import { fullName } from "../lib/format";
+import { daysInMonth, fullName } from "../lib/format";
 
 /** Create (/people/new) or edit (/people/:id/edit) a person. */
 export function PersonForm() {
@@ -114,6 +114,17 @@ function PersonEditor({ person, title, cancelTo, save: saveFn, onSaved }: Editor
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }));
 
+  // A year only limits the days once it's complete, so typing "201…" on the way to "2019" doesn't clear 29 Feb.
+  const maxDay = (f: FormState) => daysInMonth(numberOrNull(f.birth_month), f.birth_year.length === 4 ? Number(f.birth_year) : null);
+
+  /** Set month or year; clears the day if it no longer exists (rather than silently changing it). */
+  const setBirthPart = (key: "birth_month" | "birth_year", value: string) =>
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      if (next.birth_day && Number(next.birth_day) > maxDay(next)) next.birth_day = "";
+      return next;
+    });
+
   const save = useMutation({
     mutationFn: saveFn,
     onSuccess: (saved) => {
@@ -169,17 +180,15 @@ function PersonEditor({ person, title, cancelTo, save: saveFn, onSaved }: Editor
           <legend className="block text-sm font-medium text-stone-600 dark:text-stone-400">{t("form.birthdate")}</legend>
           <p className="mb-2 text-xs text-stone-500">{t("form.birthdateHint")}</p>
           <div className="grid grid-cols-[5rem_1fr_6rem] gap-2 sm:max-w-md">
-            <input
-              className="input"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={2}
-              placeholder={t("form.day")}
-              aria-label={t("form.day")}
-              value={form.birth_day}
-              onChange={(e) => set("birth_day", e.target.value.replace(/\D/g, ""))}
-            />
-            <select className="input" aria-label={t("form.month")} value={form.birth_month} onChange={(e) => set("birth_month", e.target.value)}>
+            <select className="input" aria-label={t("form.day")} value={form.birth_day} onChange={(e) => set("birth_day", e.target.value)}>
+              <option value="">{t("form.day")}</option>
+              {Array.from({ length: maxDay(form) }, (_, i) => (
+                <option key={i} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+            <select className="input" aria-label={t("form.month")} value={form.birth_month} onChange={(e) => setBirthPart("birth_month", e.target.value)}>
               <option value="">{t("form.month")}</option>
               {monthNames.map((name, i) => (
                 <option key={i} value={i + 1}>
@@ -195,7 +204,7 @@ function PersonEditor({ person, title, cancelTo, save: saveFn, onSaved }: Editor
               placeholder={t("form.year")}
               aria-label={t("form.year")}
               value={form.birth_year}
-              onChange={(e) => set("birth_year", e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => setBirthPart("birth_year", e.target.value.replace(/\D/g, ""))}
             />
           </div>
         </fieldset>

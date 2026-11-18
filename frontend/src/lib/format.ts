@@ -23,6 +23,15 @@ export function formatBirthdate(p: Pick<Person, "birth_year" | "birth_month" | "
   return new Intl.DateTimeFormat(locale, opts).format(date);
 }
 
+/**
+ * Number of selectable days for a (possibly unknown) month and year.
+ * Unknown month: 31. February with unknown year: 29 (it exists in leap years).
+ */
+export function daysInMonth(month: number | null, year: number | null): number {
+  if (month == null) return 31;
+  return new Date(Date.UTC(year ?? 2000, month, 0)).getUTCDate();
+}
+
 /** Age in whole years. `exact` is false when only the year (or year+month) is known. */
 export function age(
   p: Pick<Person, "birth_year" | "birth_month" | "birth_day">,
