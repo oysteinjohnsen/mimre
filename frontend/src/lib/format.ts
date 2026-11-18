@@ -1,7 +1,7 @@
 import type { Person } from "../api";
 
-export function fullName(p: Pick<Person, "first_name" | "last_name">): string {
-  return [p.first_name, p.last_name].filter(Boolean).join(" ");
+export function fullName(p: Pick<Person, "first_name" | "middle_name" | "last_name">): string {
+  return [p.first_name, p.middle_name, p.last_name].filter(Boolean).join(" ");
 }
 
 export function initials(p: Pick<Person, "first_name" | "last_name">): string {

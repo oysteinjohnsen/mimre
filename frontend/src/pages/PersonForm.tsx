@@ -58,6 +58,7 @@ export function ProfileForm() {
 
 interface FormState {
   first_name: string;
+  middle_name: string;
   last_name: string;
   nickname: string;
   gender: Gender | "";
@@ -70,6 +71,7 @@ interface FormState {
 function toFormState(p?: Person): FormState {
   return {
     first_name: p?.first_name ?? "",
+    middle_name: p?.middle_name ?? "",
     last_name: p?.last_name ?? "",
     nickname: p?.nickname ?? "",
     gender: p?.gender ?? "",
@@ -86,6 +88,7 @@ const numberOrNull = (s: string) => (s.trim() ? Number(s) : null);
 function toInput(f: FormState): PersonInput {
   return {
     first_name: f.first_name.trim(),
+    middle_name: textOrNull(f.middle_name),
     last_name: textOrNull(f.last_name),
     nickname: textOrNull(f.nickname),
     gender: f.gender || null,
@@ -148,13 +151,19 @@ function PersonEditor({ person, title, cancelTo, save: saveFn, onSaved }: Editor
       <form onSubmit={onSubmit} className="card space-y-6 p-5 md:p-8">
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <Field label={t("form.firstName")}>
             <input className="input" required autoFocus={!person} value={form.first_name} onChange={(e) => set("first_name", e.target.value)} />
+          </Field>
+          <Field label={t("form.middleName")}>
+            <input className="input" value={form.middle_name} onChange={(e) => set("middle_name", e.target.value)} />
           </Field>
           <Field label={t("form.lastName")}>
             <input className="input" value={form.last_name} onChange={(e) => set("last_name", e.target.value)} />
           </Field>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("form.nickname")}>
             <input className="input" value={form.nickname} onChange={(e) => set("nickname", e.target.value)} />
           </Field>

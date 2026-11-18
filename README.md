@@ -42,7 +42,8 @@ API docs: http://localhost:8010/api/docs
 ### Common tasks
 
 ```sh
-# Backend tests (from backend/)
+# Backend tests (from backend/) – uses a separate `mimre_test` database,
+# created and migrated automatically; your dev data is never touched.
 uv run python -m pytest
 
 # New migration after changing app/models.py (from backend/)
@@ -64,7 +65,7 @@ Open http://localhost:8338. The API container runs migrations on startup.
 ## Roadmap
 
 1. ~~Skeleton: people CRUD, i18n, responsive layout, Docker~~
-2. Relationships (stored once, reverse label derived from gender), flexible facts, dated notes, fuzzy search
+2. ~~Relationships (stored once, reverse label derived from gender; siblings/grandparents inferred), flexible facts, dated notes, fuzzy search across names, facts and notes~~
 3. PWA (installable on iPhone)
 4. Deploy to Synology NAS behind Cloudflare Tunnel + Cloudflare Access; automated `pg_dump` backups
 5. Map of where people live, birthday reminders, tags

@@ -32,7 +32,7 @@ export function PersonCard({ person, actions, children }: { person: Person; acti
 
       {children}
 
-      <dl className="mt-8 grid gap-6 sm:grid-cols-[10rem_1fr]">
+      <dl className="mt-6 grid gap-6 empty:hidden sm:grid-cols-[10rem_1fr]">
         {birthdate && (
           <>
             <dt className="text-sm font-medium text-stone-500">{t("person.birthday")}</dt>
@@ -46,10 +46,6 @@ export function PersonCard({ person, actions, children }: { person: Person; acti
           </>
         )}
       </dl>
-
-      <p className="mt-10 border-t border-dashed border-stone-200 pt-4 text-sm text-stone-400 dark:border-stone-800">
-        {t("person.comingSoon")}
-      </p>
     </article>
   );
 }
