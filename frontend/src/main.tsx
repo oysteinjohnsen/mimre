@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 
 import "./i18n";
 import "./index.css";
+import { AuthGate } from "./components/AuthGate";
 import { Layout } from "./components/Layout";
 import { EmptyState } from "./pages/EmptyState";
 import { PersonDetail } from "./pages/PersonDetail";
@@ -26,19 +27,21 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route index element={<EmptyState />} />
-            <Route path="people/new" element={<PersonForm />} />
-            <Route path="people/:id" element={<PersonDetail />} />
-            <Route path="people/:id/edit" element={<PersonForm />} />
-            <Route path="me" element={<Profile />} />
-            <Route path="me/edit" element={<ProfileForm />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthGate>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<EmptyState />} />
+              <Route path="people/new" element={<PersonForm />} />
+              <Route path="people/:id" element={<PersonDetail />} />
+              <Route path="people/:id/edit" element={<PersonForm />} />
+              <Route path="me" element={<Profile />} />
+              <Route path="me/edit" element={<ProfileForm />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthGate>
     </QueryClientProvider>
   </StrictMode>,
 );

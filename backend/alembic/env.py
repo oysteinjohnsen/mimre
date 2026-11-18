@@ -8,7 +8,8 @@ from app.config import settings
 from app.db import Base
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
+# Migrations run as the database owner; the app itself uses a restricted role.
+config.set_main_option("sqlalchemy.url", settings.admin_database_url.replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

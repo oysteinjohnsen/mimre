@@ -1,17 +1,10 @@
 from fastapi import APIRouter, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
-from app.routers import facts, me, notes, persons, relationships
+from app.routers import auth, facts, me, notes, persons, relationships
 
+# The frontend is served from the same origin as the API (nginx in production, the Vite proxy in
+# development), so no CORS is configured: other sites' scripts can't call the API.
 app = FastAPI(title="Mimre API", docs_url="/api/docs", openapi_url="/api/openapi.json")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 api = APIRouter(prefix="/api")
 
@@ -20,6 +13,9 @@ api = APIRouter(prefix="/api")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
+
+# Public: logging in. Everything else requires a logged-in user (see app.deps.SessionDep).
+api.include_router(auth.router)
 
 api.include_router(persons.router)
 api.include_router(me.router)

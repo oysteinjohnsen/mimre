@@ -1,3 +1,5 @@
+import type { QueryClient } from "@tanstack/react-query";
+
 export type Gender = "male" | "female";
 
 export interface PersonInput {
@@ -96,11 +98,34 @@ export class ApiError extends Error {
   }
 }
 
+export interface User {
+  id: string;
+  email: string;
+}
+
+/**
+ * Forget all cached data and set who is logged in (null = show the login page).
+ * Everything except the login state itself is removed, so nothing from one session is shown in the next.
+ */
+export function resetSession(queryClient: QueryClient, user: User | null) {
+  queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "auth" });
+  queryClient.setQueryData(["auth", "user"], user);
+}
+
+/** Called when the API says the session is gone (401), so the app can show the login page. */
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(handler: () => void) {
+  onUnauthorized = handler;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
+    // The session is an HttpOnly cookie on the same origin; JavaScript never sees the token.
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
+  if (res.status === 401 && !path.startsWith("/auth/")) onUnauthorized?.();
   if (!res.ok) {
     let message = res.statusText;
     try {
@@ -116,6 +141,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  /** The logged-in user, or null if not logged in. */
+  currentUser: async () => {
+    try {
+      return await request<User>("/auth/me");
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) return null;
+      throw e;
+    }
+  },
+  login: (email: string, password: string, language: string) =>
+    request<{ challenge_id: string }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password, language }) }),
+  verifyCode: (challengeId: string, code: string) =>
+    request<User>("/auth/verify", { method: "POST", body: JSON.stringify({ challenge_id: challengeId, code }) }),
+  resendCode: (challengeId: string, language: string) =>
+    request<void>("/auth/resend", { method: "POST", body: JSON.stringify({ challenge_id: challengeId, language }) }),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
+
   listPersons: (q?: string, opts?: { includeMe?: boolean }) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
