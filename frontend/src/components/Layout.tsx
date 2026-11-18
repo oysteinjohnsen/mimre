@@ -14,7 +14,7 @@ export function Layout() {
       <aside className={`${atIndex ? "flex" : "hidden"} min-h-0 flex-1 flex-col md:flex md:w-80 md:flex-none`}>
         <PersonList />
       </aside>
-      <main className={`${atIndex ? "hidden" : "block"} min-h-0 flex-1 overflow-y-auto md:block`}>
+      <main className={`${atIndex ? "hidden" : "block"} min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)] md:block md:pb-0`}>
         <Outlet />
       </main>
     </div>

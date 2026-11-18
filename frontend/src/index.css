@@ -14,9 +14,13 @@
   html {
     @apply bg-stone-100 text-stone-900 antialiased dark:bg-stone-900 dark:text-stone-100;
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     min-height: 100dvh;
+    /* The panes scroll on their own; don't let the whole app rubber-band like a web page. */
+    overscroll-behavior: none;
   }
   input,
   select,

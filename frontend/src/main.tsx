@@ -12,6 +12,13 @@ import { PersonForm, ProfileForm } from "./pages/PersonForm";
 import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 
+// Service worker only in production builds; in development it would get in the way of hot reload.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((err) => console.warn("Service worker registration failed", err));
+  });
+}
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
 });
