@@ -53,6 +53,12 @@ uv run python -m alembic revision --autogenerate -m "describe change"
 npm run build
 ```
 
+## Continuous integration
+
+GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on pushes
+to `main`: backend tests against a Postgres service container, and the frontend type check + build.
+Work happens on branches and is merged to `main` via pull requests.
+
 ## Full stack in Docker
 
 ```sh
