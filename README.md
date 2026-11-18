@@ -53,6 +53,16 @@ uv run python -m alembic revision --autogenerate -m "describe change"
 npm run build
 ```
 
+## Install on iPhone (PWA)
+
+Open Mimre in Safari, tap **Share → Add to Home Screen**. It then opens full screen with its own icon.
+The service worker ([frontend/public/sw.js](frontend/public/sw.js)) caches the app shell so it starts
+instantly and offline; API data is never cached. Service workers need HTTPS (or `localhost`), so offline
+start on the phone works once the app is served over HTTPS (e.g. via Cloudflare Tunnel). The service worker
+is only registered in production builds (`npm run build` / the Docker stack), not in `npm run dev`.
+
+When changing caching behaviour in `sw.js`, bump the `CACHE` name so old caches are cleared.
+
 ## Continuous integration
 
 GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every pull request and on pushes
@@ -72,6 +82,6 @@ Open http://localhost:8338. The API container runs migrations on startup.
 
 1. ~~Skeleton: people CRUD, i18n, responsive layout, Docker~~
 2. ~~Relationships (stored once, reverse label derived from gender; siblings/grandparents inferred), flexible facts, dated notes, fuzzy search across names, facts and notes~~
-3. PWA (installable on iPhone)
+3. ~~PWA (installable on iPhone)~~
 4. Deploy to Synology NAS behind Cloudflare Tunnel + Cloudflare Access; automated `pg_dump` backups
 5. Map of where people live, birthday reminders, tags
